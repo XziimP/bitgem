@@ -712,6 +712,25 @@ bool AppInit2()
 
     // ********************************************************* Step 8: load wallet
 
+    // needed to restore wallet transaction meta data after -zapwallettxes
+    std::vector<CWalletTx> vWtx;
+
+    if (GetBoolArg("-zapwallettxes", false)) {
+        uiInterface.InitMessage(_("Zapping all transactions from wallet..."));
+        printf("Zapping all transactions from wallet...\n");
+
+        pwalletMain = new CWallet("wallet.dat");
+        DBErrors nZapWalletRet = pwalletMain->ZapWalletTx(vWtx);
+        if (nZapWalletRet != DB_LOAD_OK) {
+            uiInterface.InitMessage(_("Error loading wallet.dat: Wallet corrupted"));
+            printf("Error loading wallet.dat: Wallet corrupted\n");
+            return false;
+        }
+
+        delete pwalletMain;
+        pwalletMain = NULL;
+    }
+
     uiInterface.InitMessage(_("Loading wallet..."));
     printf("Loading wallet...\n");
     nStart = GetTimeMillis();
@@ -791,6 +810,31 @@ bool AppInit2()
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
         printf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+
+        nWalletDBUpdated++;
+
+        // Restore wallet transaction metadata after -zapwallettxes
+        if (GetBoolArg("-zapwallettxes", false))
+        {
+          BOOST_FOREACH(const CWalletTx& wtxOld, vWtx)
+          {
+            uint256 hash = wtxOld.GetHash();
+            std::map<uint256, CWalletTx>::iterator mi = pwalletMain->mapWallet.find(hash);
+            if (mi != pwalletMain->mapWallet.end())
+            {
+              const CWalletTx* copyFrom = &wtxOld;
+              CWalletTx* copyTo = &mi->second;
+              copyTo->mapValue = copyFrom->mapValue;
+              copyTo->vOrderForm = copyFrom->vOrderForm;
+              copyTo->nTimeReceived = copyFrom->nTimeReceived;
+              copyTo->nTimeSmart = copyFrom->nTimeSmart;
+              copyTo->fFromMe = copyFrom->fFromMe;
+              copyTo->strFromAccount = copyFrom->strFromAccount;
+              copyTo->nOrderPos = copyFrom->nOrderPos;
+              copyTo->WriteToDisk();
+            }
+          }
+        }
     }
 
     // ********************************************************* Step 9: import blocks

@@ -975,6 +975,22 @@ int64 GetProofOfWorkReward(unsigned int nBits)
     return min(nSubsidy, MAX_MINT_PROOF_OF_WORK);
 }
 
+unsigned int GetStakeMinAge(unsigned int nTime)
+{
+//  if (nTime > VERSION2_SWITCH_TIME)
+//      return nStakeMinAgeV2; // 15 days
+//  else
+      return nStakeMinAge; //30 days
+}
+
+unsigned int GetStakeMaxAge(unsigned int nTime)
+{
+//  if (nTime > VERSION2_SWITCH_TIME)
+//      return nStakeMaxAgeV2;  // 45 days
+//  else
+      return nStakeMaxAge; // 90 days
+}
+
 // miner's coin stake reward based on nBits and coin age spent (coin-days)
 int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime)
 {

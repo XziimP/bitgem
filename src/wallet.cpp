@@ -3,6 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "main.h"
 #include "wallet.h"
 #include "walletdb.h"
 #include "crypter.h"
@@ -12,6 +13,7 @@
 
 using namespace std;
 extern int nStakeMaxAge;
+extern bool fWalletUnlockMintOnly;
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -83,7 +85,7 @@ bool CWallet::AddCScript(const CScript& redeemScript)
 
 // ppcoin: optional setting to unlock wallet for block minting only;
 //         serves to disable the trivial sendmoney when OS account compromised
-bool fWalletUnlockMintOnly = false;
+//bool fWalletUnlockMintOnly = false;
 
 bool CWallet::Unlock(const SecureString& strWalletPassphrase)
 {
@@ -1337,6 +1339,127 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& w
     return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
 }
 
+// Diamond: get current stake generation power
+// This function should closely match the logic and values in CTransaction::GetCoinAge()
+uint64 CWallet::GetStakeMintPower(const CKeyStore& keystore)
+{
+    // Choose coins to use
+    int64 nBalance = GetBalance();
+    int64 nReserveBalance = 0;
+    uint64 nCoinAge = 0;
+    CBigNum bnCentSecond = 0; // coin age in the unit of cent-seconds
+
+    if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
+    {
+        error("GetStakeMintPower : invalid reserve balance amount");
+        return 0;
+    }
+
+    if (nBalance <= nReserveBalance)
+        return 0;
+
+    set<pair<const CWalletTx*,unsigned int> > setCoins;
+    vector<const CWalletTx*> vwtxPrev;
+    int64 nValueIn = 0;
+    if (!SelectCoins(nBalance - nReserveBalance, GetTime(), setCoins, nValueIn))
+        return 0;
+    if (setCoins.empty())
+        return 0;
+
+    BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+    {
+        CTxDB txdb("r");
+        CTxIndex txindex;
+        if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+            continue;
+
+        // Do not count input that is still too young
+        if (pcoin.first->nTime + nStakeMinAge > GetTime())
+            continue;
+
+        bnCentSecond += CBigNum(pcoin.first->vout[pcoin.second].nValue) * (GetTime() - pcoin.first->nTime) / CENT;
+    }
+    CBigNum bnCoinDay = bnCentSecond * CENT / COIN / (24 * 60 * 60);
+    nCoinAge = bnCoinDay.getuint64();
+
+    if (fDebug && GetBoolArg("-printcoinage"))
+        printf("StakePower bnCoinDay=%"PRI64d"\n", nCoinAge);
+
+    return nCoinAge;
+}
+
+// NovaCoin: get current stake weight
+ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64& nMinWeight, uint64& nMaxWeight, uint64& nWeight)
+ {
+     // Choose coins to use
+     int64 nBalance = GetBalance();
+ 
+     int64 nReserveBalance = 0;
+     if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))
+         return error("GetStakeWeight : invalid reserve balance amount");
+     if (nBalance <= nReserveBalance)
+         return false;
+ 
+     set<pair<const CWalletTx*,unsigned int> > setCoins;
+     vector<const CWalletTx*> vwtxPrev;
+     int64 nValueIn = 0;
+ 
+     if (!SelectCoins(nBalance - nReserveBalance, GetTime(), setCoins, nValueIn))
+         return false;
+ 
+     if (setCoins.empty())
+         return false;
+ 
+     CTxDB txdb("r");
+     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
+     {
+         CTxIndex txindex;
+         {
+             LOCK2(cs_main, cs_wallet);
+             if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
+                 continue;
+         }
+ 
+         int64 nTimeWeight = GetWeight((int64)pcoin.first->nTime, (int64)GetTime());
+         CBigNum bnCoinDayWeight = CBigNum(pcoin.first->vout[pcoin.second].nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+ 
+         // Weight is greater than zero
+         if (nTimeWeight > 0)
+         {
+             nWeight += bnCoinDayWeight.getuint64();
+         }
+ 
+         // Weight is greater than zero, but the maximum value isn't reached yet
+         if (nTimeWeight > 0 && nTimeWeight < nStakeMaxAge)
+         {
+             nMinWeight += bnCoinDayWeight.getuint64();
+         }
+ 
+         // Maximum weight was reached
+         if (nTimeWeight == nStakeMaxAge)
+         {
+             nMaxWeight += bnCoinDayWeight.getuint64();
+         }
+     }
+ 
+     return true;
+ }
+
+bool CWallet::GetStakeWeightFromValue(const int64& nTime, const int64& nValue, uint64& nWeight)
+{
+    // This is a negative value when there is no weight. But set it to zero
+    // so the user is not confused. Used in reporting in Coin Control.
+    // Descisions based on this function should be used with care.
+    int64 nTimeWeight = GetWeight(nTime, (int64)GetTime());
+    if (nTimeWeight < 0 )
+            nTimeWeight=0;
+
+    CBigNum bnCoinDayWeight = CBigNum(nValue) * nTimeWeight / COIN / (24 * 60 * 60);
+    nWeight = bnCoinDayWeight.getuint64();
+
+    return true;
+}
+
 // ppcoin: create coin stake transaction
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64 nSearchInterval, CTransaction& txNew)
 {
@@ -1667,6 +1790,29 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     return DB_LOAD_OK;
 }
 
+
+DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx>& vWtx)
+{
+    if (!fFileBacked)
+        return DB_LOAD_OK;
+    DBErrors nZapWalletTxRet = CWalletDB(strWalletFile,"cr+").ZapWalletTx(this, vWtx);
+    if (nZapWalletTxRet == DB_NEED_REWRITE)
+    {
+        if (CDB::Rewrite(strWalletFile, "\x04pool"))
+        {
+            LOCK(cs_wallet);
+            setKeyPool.clear();
+            // Note: can't top-up keypool here, because wallet is locked.
+            // User will be prompted to unlock wallet the next operation
+            // that requires a new key.
+        }
+    }
+
+    if (nZapWalletTxRet != DB_LOAD_OK)
+        return nZapWalletTxRet;
+
+    return DB_LOAD_OK;
+}
 
 bool CWallet::SetAddressBookName(const CTxDestination& address, const string& strName)
 {
@@ -2066,6 +2212,77 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, bool
             }
         }
     }
+}
+
+// wallet check/repair
+// check 'spent' consistency between wallet and txindex
+// fix wallet spent state according to txindex
+// remove orphan Coinbase and Coinstake
+void CWallet::Fix_SpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, int& nOrphansFound, bool fCheckOnly)
+{
+    nMismatchFound = 0;
+    nBalanceInQuestion = 0;
+    nOrphansFound = 0;
+
+    LOCK(cs_wallet);
+    vector<CWalletTx*> vCoins;
+    vCoins.reserve(mapWallet.size());
+    for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        vCoins.push_back(&(*it).second);
+
+    CTxDB txdb("r");
+    BOOST_FOREACH(CWalletTx* pcoin, vCoins)
+    {
+        uint256 hash = pcoin->GetHash();
+        // Find the corresponding transaction index
+        CTxIndex txindex;
+        if (!txdb.ReadTxIndex(hash, txindex) && !(pcoin->IsCoinBase() || pcoin->IsCoinStake()))
+            continue;
+
+        for (unsigned int n=0; n < pcoin->vout.size(); n++)
+        {
+            bool fUpdated = false;
+            if (IsMine(pcoin->vout[n]) && pcoin->IsSpent(n) && (txindex.vSpent.size() <= n || txindex.vSpent[n].IsNull()))
+            {
+                printf("FixSpentCoins found lost coin %scap %s[%d], %s\n",
+                    FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                nMismatchFound++;
+                nBalanceInQuestion += pcoin->vout[n].nValue;
+                if (!fCheckOnly)
+                {
+                    fUpdated = true;
+                    pcoin->MarkUnspent(n);
+                    pcoin->WriteToDisk();
+                }
+            }
+            else if (IsMine(pcoin->vout[n]) && !pcoin->IsSpent(n) && (txindex.vSpent.size() > n && !txindex.vSpent[n].IsNull()))
+            {
+                printf("FixSpentCoins found spent coin %scap %s[%d], %s\n",
+                    FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                nMismatchFound++;
+                nBalanceInQuestion += pcoin->vout[n].nValue;
+                if (!fCheckOnly)
+                {
+                    fUpdated = true;
+                    pcoin->MarkSpent(n);
+                    pcoin->WriteToDisk();
+                }
+            }
+            if (fUpdated)
+                NotifyTransactionChanged(this, hash, CT_UPDATED);
+        }
+
+        if((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetDepthInMainChain() < 0)
+        {
+           nOrphansFound++;
+           if (!fCheckOnly)
+           {
+             EraseFromWallet(hash);
+             NotifyTransactionChanged(this, hash, CT_DELETED);
+           }
+           printf("FixSpentCoins %s orphaned generation tx %s\n", fCheckOnly ? "found" : "removed", hash.ToString().c_str());
+        }
+     }
 }
 
 // ppcoin: disable transaction (only for coinstake)
