@@ -11,6 +11,8 @@
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
+#include <QDesktopServices>
+#include <QUrl>
 
 #define DECORATION_SIZE 64
 #define NUM_ITEMS 3
@@ -109,6 +111,8 @@ OverviewPage::OverviewPage(QWidget *parent) :
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
 
+    // clicking on logo opens web browser to home page
+    connect(ui->HomeButton, SIGNAL (released()), this, SLOT (handleHomeButton()));
     // init "out of sync" warning labels
     ui->labelWalletStatus->setText("(" + tr("out of sync") + ")");
     ui->labelTransactionsStatus->setText("(" + tr("out of sync") + ")");
@@ -126,6 +130,11 @@ void OverviewPage::handleTransactionClicked(const QModelIndex &index)
 OverviewPage::~OverviewPage()
 {
     delete ui;
+}
+
+void OverviewPage::handleHomeButton()
+{
+  QDesktopServices::openUrl(QUrl("http://Bitgem.rocks"));
 }
 
 void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance)
