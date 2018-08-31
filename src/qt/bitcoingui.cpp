@@ -72,6 +72,7 @@ extern int64 nLastCoinStakeSearchInterval;
 extern unsigned int nStakeTargetSpacing;
 
 static QSplashScreen *splashref;
+extern BitcoinGUI *guiref;
 
 BitcoinGUI::BitcoinGUI(QWidget *parent):
     QMainWindow(parent),
@@ -1033,7 +1034,8 @@ void BitcoinGUI::zapWallet()
   progressBarLabel->setVisible(true);
 
   // bring up splash screen
-  QSplashScreen splash(QPixmap(":/images/splash"), 0);
+  QSplashScreen splash(QPixmap(":/images/splash"), Qt::WindowStaysOnTopHint);
+  splash.setEnabled(false);
   splash.show();
   splash.setAutoFillBackground(true);
   splashref = &splash;

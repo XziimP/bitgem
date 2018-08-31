@@ -12,6 +12,9 @@
 #include "ui_interface.h"
 #include "qtipcserver.h"
 
+#include <stdint.h>
+
+#include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
 #include <QTextCodec>
@@ -19,6 +22,14 @@
 #include <QTranslator>
 #include <QSplashScreen>
 #include <QLibraryInfo>
+#include <QEvent>
+#include <QCloseEvent>
+#include <QLabel>
+#include <QRegExp>
+#include <QTextTable>
+#include <QTextCursor>
+#include <QVBoxLayout>
+#include <QObject>
 
 #if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
 #define _BITCOIN_QT_PLUGINS_INCLUDED
@@ -197,7 +208,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QSplashScreen splash(QPixmap(":/images/splash"), 0);
+    QSplashScreen splash(QPixmap(":/images/splash"), Qt::WindowStaysOnTopHint);
+	splash.setEnabled(false);
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
     {
         splash.show();

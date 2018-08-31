@@ -2256,7 +2256,7 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, uns
     return (nFound >= nRequired);
 }
 
-bool ProcessBlock(CNode* pfrom, CBlock* pblock)
+bool ProcessBlock(CNode* pfrom, CBlock* pblock, bool lessAggressive)
 {
     // Check for duplicate
     uint256 hash = pblock->GetHash();
@@ -2281,8 +2281,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         uint256 hashProofOfStake = 0;
         if (!CheckProofOfStake(pblock->vtx[1], pblock->nBits, hashProofOfStake))
         {
-            printf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
-            return false; // do not error here as we expect this during initial block download
+          printf("WARNING: ProcessBlock(): check proof-of-stake failed for block %s\n", hash.ToString().c_str());
+          // by Simone: when importing bootstrap,if we return false here,it will break import
+          // if we return true while syncing, it will break the syncing on Win 10........
+          // so, return lessAggressive flag, which is true **only** when importing bootstrap
+		  return lessAggressive; // do not error here,expect this during initial block download
         }
         if (!mapProofOfStake.count(hash)) // add to mapProofOfStake
             mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
@@ -2296,7 +2299,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         CBigNum bnNewBlock;
         bnNewBlock.SetCompact(pblock->nBits);
         CBigNum bnRequired;
+
         bnRequired.SetCompact(ComputeMinWork(GetLastBlockIndex(pcheckpoint, pblock->IsProofOfStake())->nBits, deltaTime));
+
         if (bnNewBlock > bnRequired)
         {
             if (pfrom)
@@ -2354,6 +2359,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
              ++mi)
         {
             CBlock* pblockOrphan = (*mi).second;
+			hash = pblockOrphan->GetHash();
             if (pblockOrphan->AcceptBlock())
                 vWorkQueue.push_back(pblockOrphan->GetHash());
             mapOrphanBlocks.erase(pblockOrphan->GetHash());
@@ -2753,6 +2759,10 @@ bool LoadExternalBlockFile(FILE* fileIn)
     {
         LOCK(cs_main);
         try {
+			char msg[256];
+			double progress = 0;
+			double oldProgress = -1;
+			double fSize = GetFilesize(fileIn);
             CAutoFile blkdat(fileIn, SER_DISK, CLIENT_VERSION);
             unsigned int nPos = 0;
             while (nPos != (unsigned int)-1 && blkdat.good() && !fRequestShutdown)
@@ -2788,10 +2798,20 @@ bool LoadExternalBlockFile(FILE* fileIn)
                 {
                     CBlock block;
                     blkdat >> block;
-                    if (ProcessBlock(NULL,&block))
+                    if (ProcessBlock(NULL, &block, true))
                     {
                         nLoaded++;
                         nPos += 4 + nSize;
+						progress = ((double)nPos * 1000.0) / fSize;
+						if (progress != oldProgress)
+						{
+							double dispProgress = progress / 10;
+							sprintf(msg, "Importing bootstrap (%.1f%%)...", dispProgress);
+#ifdef QT_GUI
+							uiInterface.InitMessage(_(msg));
+#endif
+							oldProgress = progress;
+						}
                     }
                 }
             }

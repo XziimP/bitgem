@@ -270,6 +270,9 @@
             <property name="cursor">
              <cursorShape>PointingHandCursor</cursorShape>
             </property>
+            <property name="styleSheet">
+             <string notr="true">QToolTip{background-color:rgb(255,233,142); color:black; border:2px solid darkgrey;padding: 12px 20px 12px 20px} QPushButton{background-color:transparent}</string>
+            </property>
             <property name="text">
              <string/>
             </property>
