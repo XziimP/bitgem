@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Options</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-image: url(:/images/background); background-position: center;</string>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -23,7 +26,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -79,10 +82,10 @@
        <item>
         <widget class="QCheckBox" name="bitcoinAtStartup">
          <property name="toolTip">
-          <string>Automatically start BitGem after logging in to the system.</string>
+          <string>Automatically start BitBar after logging in to the system.</string>
          </property>
          <property name="text">
-          <string>&amp;Start BitGem on system login</string>
+          <string>&amp;Start BitBar on system login</string>
          </property>
         </widget>
        </item>
@@ -119,7 +122,7 @@
        <item>
         <widget class="QCheckBox" name="mapPortUpnp">
          <property name="toolTip">
-          <string>Automatically open the BitGem client port on the router. This only works when your router supports UPnP and it is enabled.</string>
+          <string>Automatically open the BitBar client port on the router. This only works when your router supports UPnP and it is enabled.</string>
          </property>
          <property name="text">
           <string>Map port using &amp;UPnP</string>
@@ -129,7 +132,7 @@
        <item>
         <widget class="QCheckBox" name="connectSocks">
          <property name="toolTip">
-          <string>Connect to the BitGem network through a SOCKS proxy (e.g. when connecting through Tor).</string>
+          <string>Connect to the BitBar network through a SOCKS proxy (e.g. when connecting through Tor).</string>
          </property>
          <property name="text">
           <string>&amp;Connect through SOCKS proxy:</string>
@@ -284,7 +287,7 @@
       <attribute name="title">
        <string>&amp;Display</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_Display">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_1_Display">
          <item>
@@ -303,7 +306,7 @@
          <item>
           <widget class="QValueComboBox" name="lang">
            <property name="toolTip">
-            <string>The user interface language can be set here. This setting will take effect after restarting BitGem.</string>
+            <string>The user interface language can be set here. This setting will take effect after restarting BitBar.</string>
            </property>
           </widget>
          </item>
@@ -336,7 +339,7 @@
        <item>
         <widget class="QCheckBox" name="displayAddresses">
          <property name="toolTip">
-          <string>Whether to show BitGem addresses in the transaction list or not.</string>
+          <string>Whether to show BitBar addresses in the transaction list or not.</string>
          </property>
          <property name="text">
           <string>&amp;Display addresses in transaction list</string>
@@ -344,9 +347,22 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="coinControlFeatures">
+         <property name="toolTip">
+          <string>Whether to show coin control features or not.</string>
+         </property>
+         <property name="text">
+          <string>Display Coin &amp;Control Features (experts only!)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_Display">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>

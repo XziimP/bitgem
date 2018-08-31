@@ -512,14 +512,33 @@ bool CTransaction::CheckTransaction() const
 }
 
 int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
-                              enum GetMinFee_mode mode) const
+                              enum GetMinFee_mode mode, unsigned int nBytes) const
 {
     // Base fee is either MIN_TX_FEE or MIN_RELAY_TX_FEE
     int64 nBaseFee = (mode == GMF_RELAY) ? MIN_RELAY_TX_FEE : MIN_TX_FEE;
 
-    unsigned int nBytes = ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
+// changed for coin control
+//    nBytes = ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
+//    unsigned int nBytes = ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
     unsigned int nNewBlockSize = nBlockSize + nBytes;
     int64 nMinFee = (1 + (int64)nBytes / 1000) * nBaseFee;
+
+    if (fAllowFree)
+    {
+        if (nBlockSize == 1)
+        {
+            // Transactions under 10K are free
+            // (about 4500 BTC if made of 50 BTC inputs)
+            if (nBytes < 10000)
+                nMinFee = 0;
+        }
+        else
+        {
+            // Free transaction area
+            if (nNewBlockSize < 27000)
+                nMinFee = 0;
+        }
+    }
 
     // To limit dust spam, require MIN_TX_FEE/MIN_RELAY_TX_FEE if any output is less than 0.01
     if (nMinFee < nBaseFee)

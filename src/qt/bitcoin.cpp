@@ -79,6 +79,7 @@ static void ThreadSafeHandleURI(const std::string& strURI)
                                Q_ARG(QString, QString::fromStdString(strURI)));
 }
 
+// find splash font color here
 static void InitMessage(const std::string &message)
 {
     if(splashref)
@@ -143,7 +144,7 @@ int main(int argc, char *argv[])
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
     app.setOrganizationName("BitGem");
-    app.setOrganizationDomain("bitgem.su");
+    app.setOrganizationDomain("bitgem.rocks");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
         app.setApplicationName("BitGem-Qt-testnet");
     else
