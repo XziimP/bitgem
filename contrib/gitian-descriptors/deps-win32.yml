@@ -1,5 +1,5 @@
 ---
-name: "bitgem-deps"
+name: "bitcoin-deps"
 suites:
 - "precise"
 architectures:
