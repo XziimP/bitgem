@@ -4,10 +4,6 @@ Bitgem official development tree
 Bitgem - a hybrid scrypt PoW + PoS based cryptocurrency.
 
 * 10 minute block spacing
-* The PoW subsidy halves every x64 multiply of PoW difficulty
-* The PoS interest halves every x64 multiply of PoS difficulty
-* Maximum PoW reward is 100 coins
-* ~ 2 billion total coins
 
 
 <b>Web site</b> http://bitgem.rocks/<br>

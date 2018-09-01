@@ -1,21 +1,12 @@
-BitGem
+Bitgem official development tree
 
-Copyright (c) 2013 NovaCoin Developers
-Copyright (c) 2011-2012 PPCoin Developers
-Copyright (c) 2013- BitGem Developers
-Distributed under the MIT/X11 software license, see the accompanying
-file license.txt or http://www.opensource.org/licenses/mit-license.php.
-This product includes software developed by the OpenSSL Project for use in
-the OpenSSL Toolkit (http://www.openssl.org/).  This product includes
-cryptographic software written by Eric Young (eay@cryptsoft.com).
+Bitgem - a hybrid scrypt PoW + PoS based cryptocurrency.
+
+* 10 minute block spacing
+* The PoW subsidy halves every x64 multiply of PoW difficulty
+* The PoS interest halves every x64 multiply of PoS difficulty
 
 
-Intro
------
-BitGem is a free open source project derived from PPCoin, with the goal of
-providing a long-term energy-efficient scrypt-based crypto-currency.
-Built on the foundation of Bitcoin and PPCoin, innovations such as proof-of-stake
-help further advance the field of crypto-currency.
-
------
-
+<b>Web site</b> http://bitgem.rocks/<br>
+<b>Bitcointalk</b> https://bitcointalk.org/index.php?topic=207008.0<br>
+<b>Discord</b> https://discord.gg/kNtFdpP<br>
