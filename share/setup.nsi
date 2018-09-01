@@ -5,7 +5,7 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.3.0
+!define VERSION 0.7.3
 !define COMPANY "BitGem project"
 !define URL http://
 
@@ -45,7 +45,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile bitgem-0.3.0-win32-setup.exe
+OutFile bitgem-v0.7.3-win32-setup.exe
 InstallDir $PROGRAMFILES\BitGem
 CRCCheck on
 XPStyle on
@@ -77,7 +77,7 @@ Section -Main SEC0000
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 
     # Remove old wxwidgets-based-bitgem executable and locales:
-    Delete /REBOOTOK $INSTDIR\bitgem.exe
+    Delete /REBOOTOK $INSTDIR\bitgem-qt.exe
     RMDir /r /REBOOTOK $INSTDIR\locale
 SectionEnd
 
