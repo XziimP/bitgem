@@ -86,6 +86,7 @@ private:
     QAction *sendCoinsAction;
     QAction *addressBookAction;
 	QAction *skinsPageAction;
+	QAction* openConfigAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -162,6 +163,9 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
+
+    // Open bitcoin-scrypt.conf
+    void openConfig();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

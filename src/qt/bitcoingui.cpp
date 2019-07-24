@@ -219,6 +219,8 @@ menuBar()->setNativeMenuBar(false);// menubar on form instead
     // Clicking on "Sign Message" in the receive coins page sends you to the sign message tab
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
 
+    connect(openConfigAction, SIGNAL(triggered()), this, SLOT(openConfig()));
+
     gotoOverviewPage();
 }
 
@@ -270,6 +272,10 @@ void BitcoinGUI::createActions()
     skinsPageAction->setCheckable(true);
     skinsPageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(skinsPageAction);
+
+
+    openConfigAction = new QAction(QIcon(":/icons/edit"), tr("Open Wallet &Configuration File"), this);
+    openConfigAction->setStatusTip(tr("Open wallet configuration file"));
 
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
@@ -360,6 +366,7 @@ void BitcoinGUI::createMenuBar()
     file->addAction(quitAction);
 
     QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
+    settings->addAction(openConfigAction);
     settings->addAction(optionsAction);
 
     QMenu *wallet = appMenuBar->addMenu(tr("&Wallet"));
@@ -496,6 +503,7 @@ void BitcoinGUI::createTrayIcon()
     trayIconMenu->addAction(verifyMessageAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(optionsAction);
+    trayIconMenu->addAction(openConfigAction);
     trayIconMenu->addAction(openRPCConsoleAction);
 #ifndef Q_OS_MAC // This is built-in on Mac
     trayIconMenu->addSeparator();
@@ -1261,3 +1269,13 @@ void BitcoinGUI::updateMintingWeights()
         nNetworkWeight = GetPoSKernelPS();
     }
 }
+
+void BitcoinGUI::openConfig()
+{
+  boost::filesystem::path pathConfig = GetConfigFile();
+  /* Open bitcoin-scrypt.conf with the associated application */
+  if (boost::filesystem::exists(pathConfig))
+    QDesktopServices::openUrl(QUrl::fromLocalFile(pathConfig.string().c_str()));
+printf("pathConfig=%s\n",pathConfig.string().c_str());
+}
+
