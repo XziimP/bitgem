@@ -7,6 +7,7 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "splash.h"
 
 #include "init.h"
 #include "ui_interface.h"
@@ -43,8 +44,8 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #endif
 
 // Need a global reference for the notifications to find the GUI
-static BitcoinGUI *guiref;
-static QSplashScreen *splashref;
+BitcoinGUI *guiref;
+Splash *stwref;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, int style)
 {
@@ -93,11 +94,10 @@ static void ThreadSafeHandleURI(const std::string& strURI)
 // find splash font color here
 static void InitMessage(const std::string &message)
 {
-    if(splashref)
-    {
-        splashref->showMessage(QString::fromStdString(message), Qt::AlignBottom|Qt::AlignHCenter, QColor(255,255,200));
-        QApplication::instance()->processEvents();
-    }
+  if (stwref)
+  {
+    stwref->setMessage(message.c_str());
+  }
 }
 
 static void QueueShutdown()
@@ -208,19 +208,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QSplashScreen splash(QPixmap(":/images/splash"), Qt::WindowStaysOnTopHint);
-	splash.setEnabled(false);
-    if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
-    {
-        splash.show();
-        splash.setAutoFillBackground(true);
-        splashref = &splash;
-    }
-
+    // by Simone: Splash
+    Splash stw;
+    stwref = &stw;
+    stw.showSplash();
     app.processEvents();
-
+    Sleep(100);
+    app.processEvents();
     app.setQuitOnLastWindowClosed(false);
-
     try
     {
         // Regenerate startup link, to fix links to old versions
@@ -237,15 +232,16 @@ int main(int argc, char *argv[])
 
                 optionsModel.Upgrade(); // Must be done after AppInit2
 
-                if (splashref)
-                    splash.finish(&window);
-
                 ClientModel clientModel(&optionsModel);
                 WalletModel walletModel(pwalletMain, &optionsModel);
 
                 window.setClientModel(&clientModel);
                 window.setWalletModel(&walletModel);
 
+                stw.hideSplash();
+                // by Simone: load skin here
+		window.loadSkin();
+ 
                 // If -min option passed, start window minimized.
                 if(GetBoolArg("-min"))
                 {

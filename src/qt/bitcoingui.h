@@ -5,6 +5,7 @@
 #include <QSystemTrayIcon>
 #include <QDialog>
 #include <QLabel>
+#include <QSessionManager>
 
 #include "util.h" // for uint64
 
@@ -29,6 +30,7 @@ class QModelIndex;
 class QProgressBar;
 class QStackedWidget;
 class QUrl;
+class QDialog;
 QT_END_NAMESPACE
 
 /**
@@ -51,6 +53,7 @@ public:
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);
+    void loadSkin();
 
 protected:
     void changeEvent(QEvent *e);
@@ -124,9 +127,9 @@ private:
     /** Create system tray (notification) icon */
     void createTrayIcon();
 
-  void splashMessage(const std::string &message);
 
 public slots:
+    void splashMessage(const std::string &message, bool quickSleep = false);
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set number of blocks shown in the UI */

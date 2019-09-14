@@ -274,7 +274,7 @@ void SkinsPage::resizeEvent(QResizeEvent* event)
 void SkinsPage::getlist()
 {
   // show a downloading message in status bar
-  statusLabel->setText("<b>" + tr("Downloading themes from http://bitgem.rocks...") + "</b>");
+  statusLabel->setText("<b>" + tr("Downloading themes from https://bitgem.rocks...") + "</b>");
   latestNetError = "";
 
   // first, let's disable the download button (triple-clicks fanatics !)
@@ -288,7 +288,7 @@ void SkinsPage::getlist()
   connect(&manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(getListFinished(QNetworkReply*)));
 
   QNetworkRequest request;
-  request.setUrl(QUrl("http://bitgem.rocks/themes/list.txt"));
+  request.setUrl(QUrl("https://bitgem.rocks/themes/list.txt"));
   request.setRawHeader("User-Agent", "Wallet theme request");
 
   networkTimer->start();
@@ -320,7 +320,7 @@ bool SkinsPage::netHandleError(QNetworkReply* reply, QString urlDownload)
 
 void SkinsPage::getListFinished(QNetworkReply* reply)
 {
-  if (netHandleError(reply, "http://bigem.co/themes/list.txt")) {
+  if (netHandleError(reply, "https://bitgem.rocks/themes/list.txt")) {
     disconnect(&manager, SIGNAL(finished(QNetworkReply*)), 0, 0);  
     connect(&manager, SIGNAL(finished(QNetworkReply*)), SLOT(downloadFinished(QNetworkReply*)));
     QString pagelist=reply->readAll();
@@ -334,7 +334,7 @@ void SkinsPage::getListFinished(QNetworkReply* reply)
       line.replace("\r",""); // this one too
       if(line.length())
       {  
-        download("http://bitgem.rocks/themes/"+line);
+        download("https://bitgem.rocks/themes/"+line);
       } 
     }
   }
