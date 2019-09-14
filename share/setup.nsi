@@ -19,8 +19,8 @@ SetCompressor /SOLID lzma
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER LitecoinPlus
-!define MUI_FINISHPAGE_RUN $INSTDIR\LitecoinPlus-qt.exe
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER BitGem
+!define MUI_FINISHPAGE_RUN $INSTDIR\BitGem-qt.exe
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "../share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
@@ -88,7 +88,7 @@ Section -post SEC0001
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory $SMPROGRAMS\$StartMenuGroup
     CreateShortcut "$SMPROGRAMS\$StartMenuGroup\BitGem.lnk" $INSTDIR\bitgem-qt.exe
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall LitecoinPlus.lnk" $INSTDIR\uninstall.exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall BitGem.lnk" $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
@@ -99,9 +99,9 @@ Section -post SEC0001
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
 
-    # LitecoinPlus: URI handling disabled for 0.6.0
+    # BitGem: URI handling disabled for 0.6.0
         WriteRegStr HKCR "BitGem" "URL Protocol" ""
-        WriteRegStr HKCR "BitGem" "" "URL:LitecoinPlus"
+        WriteRegStr HKCR "BitGem" "" "URL:BitGem"
         WriteRegStr HKCR "BitGem\DefaultIcon" "" $INSTDIR\bitgem-qt.exe
         WriteRegStr HKCR "BitGem\shell\open\command" "" '"$INSTDIR\bitgem-qt.exe" "$$1"'
 SectionEnd

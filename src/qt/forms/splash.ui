@@ -28,7 +28,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>LitecoinPlus</string>
+   <string>BitGem</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
