@@ -273,7 +273,7 @@ void SkinsPage::resizeEvent(QResizeEvent* event)
 void SkinsPage::getlist()
 {
   // show a downloading message in status bar
-  statusLabel->setText("<b>" + tr("Downloading themes from https://bitgem.rocks...") + "</b>");
+  statusLabel->setText("<b>" + tr("Downloading themes from http://themes.bitgem.rocks...") + "</b>");
   latestNetError = "";
 
   // first, let's disable the download button (triple-clicks fanatics !)
@@ -287,8 +287,8 @@ void SkinsPage::getlist()
   connect(&manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(getListFinished(QNetworkReply*)));
 
   QNetworkRequest request;
-  request.setUrl(QUrl("https://bitgem.rocks/themes/list.txt"));
-  request.setRawHeader("User-Agent", "Wallet theme request");
+  request.setUrl(QUrl("http://themes.bitgem.rocks/themes/list.txt"));
+  request.setRawHeader("User-Agent", "Wallet BTG theme request");
 
   networkTimer->start();
   manager.get(request);
@@ -319,7 +319,7 @@ bool SkinsPage::netHandleError(QNetworkReply* reply, QString urlDownload)
 
 void SkinsPage::getListFinished(QNetworkReply* reply)
 {
-  if (netHandleError(reply, "https://bitgem.rocks/themes/list.txt")) {
+  if (netHandleError(reply, "http://themes.bitgem.rocks/themes/list.txt")) {
     disconnect(&manager, SIGNAL(finished(QNetworkReply*)), 0, 0);  
     connect(&manager, SIGNAL(finished(QNetworkReply*)), SLOT(downloadFinished(QNetworkReply*)));
     QString pagelist=reply->readAll();
@@ -333,7 +333,7 @@ void SkinsPage::getListFinished(QNetworkReply* reply)
       line.replace("\r",""); // this one too
       if(line.length())
       {  
-        download("https://bitgem.rocks/themes/"+line);
+        download("http://themes.bitgem.rocks/themes/"+line);
       } 
     }
   }
@@ -347,7 +347,7 @@ void SkinsPage::download(const QUrl &filename)
 {
   QNetworkRequest request;//(filename);
   request.setUrl(filename);
-  request.setRawHeader("User-Agent", "Wallet theme request");
+  request.setRawHeader("User-Agent", "Wallet BTG theme request");
   networkTimer->start();
   reply = manager.get(request);
   currentDownloads.append(reply);

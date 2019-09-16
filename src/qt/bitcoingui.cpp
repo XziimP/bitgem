@@ -69,6 +69,7 @@
 #include <QTableView>
 
 #include <iostream>
+#include <boost/filesystem/fstream.hpp>
 
 extern CWallet *pwalletMain;
 extern int64 nLastCoinStakeSearchInterval;
@@ -1296,6 +1297,14 @@ void BitcoinGUI::openConfig()
   /* Open bitcoin-scrypt.conf with the associated application */
   if (boost::filesystem::exists(pathConfig))
     QDesktopServices::openUrl(QUrl::fromLocalFile(pathConfig.string().c_str()));
-printf("pathConfig=%s\n",pathConfig.string().c_str());
+  else // create
+  {
+    QString temp=pathConfig.string().c_str();
+    temp=temp+".tmp";
+    boost::filesystem::ofstream(temp.toStdString().c_str()); // open temp file
+    std::rename(temp.toStdString().c_str(),pathConfig.string().c_str()); //rename
+    QDesktopServices::openUrl(QUrl::fromLocalFile(pathConfig.string().c_str())); // open
+  }
+  //printf("pathConfig=%s\n",pathConfig.string().c_str());
 }
 
