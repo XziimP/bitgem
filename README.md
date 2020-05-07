@@ -75,7 +75,11 @@ sudo apt-get install libqt4-dev libprotobuf-dev protobuf-compiler
 
 
 
-Bitgem - a hybrid scrypt PoW + PoS based cryptocurrency.
+
+
+
+
+## Bitgem - a hybrid scrypt PoW + PoS based cryptocurrency.
 
 * 10 minute block spacing
 
