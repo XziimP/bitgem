@@ -1,4 +1,4 @@
-![image](https://cdn.discordapp.com/attachments/689074851331571814/707967151851569233/bitgem-qt.png)
+![image](https://cdn.discordapp.com/attachments/689074851331571814/708092757071233054/bitgem-synced.png)
 
 
 
